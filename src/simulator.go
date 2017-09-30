@@ -11,24 +11,33 @@ func main() {
 	// simulate_restful()
 }
 
+func ssc() {
+	region1 := query.Region()
+	region1.Chromosome("chr1").Start_Pos(1879786).End_Pos(1879786)
+
+	region2 := query.Region()
+	region2.Chromosome("chr1").Start_Pos(1879903).End_Pos(1879903)
+
+}
+
+
 func simulate_flexibility(i int) {
 	start := 29446395 + i
 	end := 30142858
 	gt := ">"
 
 
-	region := query.Region()
-	region.Gene("abc")
-	region.Reset_Gene()
+	region_1 := query.Region()
+	region_1.Gene("abc")
 
-	region.Chromosome("CD99")
-	region.Reset_Chromosome()
-	region.Chromosome("chr2").Start_Pos(start).End_Pos(end)
+	region_2 := query.Region()
+	region_2.Chromosome("CD99")
+	region_2.Chromosome("chr2").Start_Pos(start).End_Pos(end)
 
 	filter := query.Filter()
 	filter.Coverage_Sum(gt, 200).Samples_Count(gt, 150)
 
-	q_str_1 := query.Execute(filter, region)
+	q_str_1 := query.Execute(filter, region_2)
 
 	print("Q_STR_1\n")
 	print(q_str_1)

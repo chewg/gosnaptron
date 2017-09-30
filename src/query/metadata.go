@@ -40,7 +40,7 @@ func (m *metadata) Initialized() bool {
 }
 
 func (m *metadata) Export() (string, error) {
-	if m.key != "" && m.value != "" {
+	if m.Initialized() {
 		return fmt.Sprintf("sfilter=%s%s:%s", m.key, m.op, m.value), nil
 	}
 

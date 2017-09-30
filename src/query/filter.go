@@ -1,9 +1,7 @@
 package query
 
-// TODO should output errors
 
 import (
-	// "errors"
 	"bytes"
 	"fmt"
 )
@@ -12,10 +10,12 @@ type filter struct {
 	length int
 	length_op string
 
-	no_annotation bool
-	no_annotation_set bool
-	single_strand bool
-	single_strand_set bool
+	no_annotation     bool
+	set_no_annotation bool
+
+	strand_plus  bool
+	strand_minus bool
+	set_strand   bool
 
 	samples_count int
 	samples_count_op string
@@ -40,13 +40,19 @@ func (f *filter) Length(op string, length int) *filter {
 
 func (f *filter) Annotated(none bool) *filter {
 	f.no_annotation = none
-	f.no_annotation_set = true
+	f.set_no_annotation = true
 	return f
 }
 
-func (f *filter) Strand(single bool) *filter {
-	f.single_strand = single
-	f.single_strand_set = true
+func (f *filter) Strand_Plus(require bool) *filter {
+	f.strand_plus = require
+	f.set_strand = true
+	return f
+}
+
+func (f *filter) Strand_Minus(require bool) *filter {
+	f.strand_minus = require
+	f.set_strand = true
 	return f
 }
 
@@ -129,7 +135,7 @@ func (f *filter) Export() (string, error) {
 	}
 
 
-	if f.no_annotation_set {
+	if f.set_no_annotation {
 		if appending {
 			b.WriteString("&")
 		}
@@ -142,16 +148,21 @@ func (f *filter) Export() (string, error) {
 		 }
 	}
 
-	if f.single_strand_set {
-		if appending {
-			b.WriteString("&")
-		}
-		appending = true
+	if f.set_strand {
+		if f.strand_plus {
+			if appending {
+				b.WriteString("&")
+			}
+			appending = true
 
-		if f.single_strand {
-			b.WriteString(fmt.Sprintf("rfilter=strand:-"))
-		} else {
 			b.WriteString(fmt.Sprintf("rfilter=strand:+"))
+		} else if f.strand_minus {
+			if appending {
+				b.WriteString("&")
+			}
+			appending = true
+
+			b.WriteString(fmt.Sprintf("rfilter=strand:-"))
 		}
 	}
 

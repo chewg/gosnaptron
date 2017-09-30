@@ -1,4 +1,4 @@
-package query
+package data
 
 /* what is returned from snaptron server */
 type data struct {
