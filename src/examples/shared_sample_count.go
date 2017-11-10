@@ -21,11 +21,11 @@ func load_dataframes_to_channel(df data.Dataframe, ch chan interface{}) {
 }
 
 
-func Shared_Sample_Count(df data.Dataframe) map[int]int {
+func Shared_Sample_Count(df *data.Dataframe) map[int]int {
 
 	queue := make(chan interface{}, len(df.Frames()))
 
-	load_dataframes_to_channel(df, queue)
+	load_dataframes_to_channel(*df, queue)
 
 	//select {
 	//case queue <- 5:

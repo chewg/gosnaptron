@@ -11,16 +11,31 @@ type Dataframe struct {
 	frames []Data
 }
 
-func DataFrame() Dataframe {
+func DataFrame() *Dataframe {
 	var df Dataframe
+	return &df
+}
+
+
+func (df *Dataframe) From_Query_String(str string) *Dataframe {
+	lines := strings.Split(str, "\n")
+	// print(lines)
+
+	for _, line := range lines[1 : len(lines) - 1] {
+		data_cells := strings.Split(line, "\t")
+		df.load_dataframes(data_cells)
+	}
+
 	return df
 }
 
-func (df * Dataframe) Frames() []Data {
+
+func (df *Dataframe) Frames() []Data {
 	return df.frames
 }
 
-func (df *Dataframe) Load_DataFrames(frames ...[]string) *Dataframe {
+
+func (df *Dataframe) load_dataframes(frames ...[]string) *Dataframe {
 	for _, frame := range frames {
 		d := Data{}
 

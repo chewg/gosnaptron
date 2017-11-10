@@ -1,15 +1,7 @@
 package ops
 
 
-type less_func func(f1, f2 *Frame) bool
-
-
-// returns sorter that sorts using less functions, done in param order listed
-func Order_By(less ...less_func) *sorter {
-	return &sorter{
-		less: less,
-	}
-}
+type order_func func(f1, f2 *Frame) bool
 
 
 func Incr_Junction_ID(f1, f2 *Frame) bool {
@@ -39,6 +31,16 @@ func Incr_Count(f1, f2 *Frame) bool {
 
 func Decr_Count(f1, f2 *Frame) bool {
 	return f1.count > f2.count
+}
+
+
+func Incr_Stat(f1, f2 *Frame) bool {
+	return f1.stat < f2.stat
+}
+
+
+func Decr_Stat(f1, f2 *Frame) bool {
+	return f1.stat > f2.stat
 }
 
 

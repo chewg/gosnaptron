@@ -3,7 +3,6 @@ package main
 import (
 	"snaptron_api/src/query"
 	"snaptron_api/src/web"
-	"strings"
 	"snaptron_api/src/data"
 	"snaptron_api/src/examples"
 	"snaptron_api/src/ops"
@@ -11,14 +10,54 @@ import (
 )
 
 func main() {
+	snaptron_exp_small_ssc()
+
 	// test_frame_jir()
-	test_frame_ssc()
+	// test_frame_ssc()
 
 	// ssc()
 	// simulate_flexibility(25)
 	// simulate_region_and_filter()
 	// simulate_restful()
 }
+
+
+func snaptron_exp_small_ssc() {
+	//chr1:1879786-1879786	2	strand=-&samples_count>=1
+	//chr1:1879903-1879903	1	strand=-&samples_count>=1
+
+	region1 := query.Region()
+	region1.Chromosome("chr1").Start_Pos(1879786).End_Pos(1879786)
+	region1.Either_End(true)
+
+	filter1 := query.Filter()
+	filter1.Strand_Minus(true).Samples_Count(">", 0)
+
+	query_string_1 := query.Execute(region1, filter1)
+	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
+
+
+	region2 := query.Region()
+	region2.Chromosome("chr1").Start_Pos(1879903).End_Pos(1879903)
+	region2.Either_Start(true)
+
+	filter2 := query.Filter()
+	filter2.Strand_Minus(true).Samples_Count(">", 0)
+
+	query_string_2 := query.Execute(region2, filter2)
+	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
+
+
+	// Start intermediate
+	frames_from_q1 := ops.Import_Dataframe(dataframe_1)
+	frames_from_q2 := ops.Import_Dataframe(dataframe_2)
+
+	group := ops.Group(frames_from_q1, frames_from_q2)
+	group = ops.Summarize(group, ops.Sum_Count_By_Sample_ID)
+	group = ops.Arrange(group, ops.Incr_Sample_ID)
+	fmt.Print(group)
+}
+
 
 func test_frame_jir() {
 	region1 := query.Region()
@@ -29,7 +68,7 @@ func test_frame_jir() {
 	filter1.Coverage_Sum(">", 1)
 
 	query_string_1 := query.Execute(region1, filter1)
-	dataframe_1 := query_string_to_dataframe(query_string_1)
+	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
 
 
 	region2 := query.Region()
@@ -40,19 +79,24 @@ func test_frame_jir() {
 	filter2.Coverage_Sum(">", 1)
 
 	query_string_2 := query.Execute(region2, filter2)
-	dataframe_2 := query_string_to_dataframe(query_string_2)
+	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
 
 
 	// Start intermediate
 	frames_from_q1 := ops.Import_Dataframe(dataframe_1)
 	frames_from_q2 := ops.Import_Dataframe(dataframe_2)
 
-	group := ops.Group(frames_from_q1, frames_from_q2)
-	group = ops.Summarize(group, ops.Sum_Count_By_Sample_ID)
+	// group := ops.Group(frames_from_q1, frames_from_q2)
+	// group = ops.Summarize(group, ops.Sum_Count_By_Sample_ID)
 
+	frames_from_q1 = ops.Summarize(frames_from_q1, ops.Sum_Count_By_Sample_ID)
+	frames_from_q2 = ops.Summarize(frames_from_q2, ops.Sum_Count_By_Sample_ID)
 
+	frames_with_jir := ops.Junction_Inclusion_Ratio(frames_from_q1, frames_from_q2)
+	frames_with_jir = ops.Arrange(frames_with_jir, ops.Decr_Stat)
+
+	fmt.Print(*frames_with_jir)
 }
-
 
 
 func test_frame_ssc() {
@@ -64,32 +108,14 @@ func test_frame_ssc() {
 	filter1.Samples_Count(">", 100)
 
 	q_str_1 := query.Execute(region1, filter1)
-
-	df := query_string_to_dataframe(q_str_1)
+	df := data.DataFrame().From_Query_String(q_str_1)
 
 	frames := ops.Import_Dataframe(df)
-
 	frames = ops.Summarize(frames, ops.Sum_Count_By_Sample_ID)
-
 	frames = ops.Arrange(frames, ops.Decr_Count, ops.Decr_Sample_ID)
 
 	fmt.Print(*frames)
 	fmt.Print("Done")
-}
-
-
-func query_string_to_dataframe(str string) data.Dataframe {
-	df := data.DataFrame()
-
-	lines := strings.Split(str, "\n")
-	// print(lines)
-
-	for _, line := range lines[1 : len(lines) - 1] {
-		data_cells := strings.Split(line, "\t")
-		df.Load_DataFrames(data_cells)
-	}
-
-	return df
 }
 
 
@@ -110,14 +136,7 @@ func ssc() {
 
 	q_str_1 := query.Execute(region1, filter1)
 
-	df := data.DataFrame()
-	lines := strings.Split(q_str_1, "\n")
-	print(lines)
-
-	for _, line := range lines[1 : len(lines) - 1] {
-		data_cells := strings.Split(line, "\t")
-		df.Load_DataFrames(data_cells)
-	}
+	df := data.DataFrame().From_Query_String(q_str_1)
 
 	ssc := examples.Shared_Sample_Count(df)
 

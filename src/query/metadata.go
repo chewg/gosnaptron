@@ -21,12 +21,8 @@ func (m *metadata) Key(key string) *metadata {
 	return m
 }
 
-func (m *metadata) Op(op string) *metadata {
+func (m *metadata) Value(op string, value string) *metadata {
 	m.op = op
-	return m
-}
-
-func (m *metadata) Value(value string) *metadata {
 	m.value = value
 	return m
 }

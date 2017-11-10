@@ -6,17 +6,17 @@ import (
 
 
 type Frame struct {
-	junction_id int
-	sample_id int
-	count int
-	stat float32
-	data string
+	junction_id 	int
+	sample_id 		int
+	count 			int
+	stat 			float32
+	data 			string
 }
 
 
 type sorter struct {
-	frames 	[]Frame
-	less    []less_func
+	frames 		[]Frame
+	order    	[]order_func
 }
 
 
@@ -25,9 +25,9 @@ func (s *sorter) Sort(frames []Frame) {
 	sort.Sort(s)
 }
 
-// part of sort.Interface.
-func (s *sorter) Swap(i, j int) {
-	s.frames[i], s.frames[j] = s.frames[j], s.frames[i]
+// part of sort.Interface
+func (s *sorter) Len() int {
+	return len(s.frames)
 }
 
 // part of sort.Interface
@@ -36,8 +36,8 @@ func (s *sorter) Less(i, j int) bool {
 
 	// All but last less func comparison
 	var l int
-	for l = 0; l < len(s.less) - 1; l++ {
-		less := s.less[l]
+	for l = 0; l < len(s.order) - 1; l++ {
+		less := s.order[l]
 
 		switch {
 		case less(frame_i, frame_j):	// frame_i < frame_j
@@ -49,10 +49,10 @@ func (s *sorter) Less(i, j int) bool {
 	}
 
 	// All prev less func comparisons equal, so return last less func
-	return s.less[l](frame_i, frame_j)
+	return s.order[l](frame_i, frame_j)
 }
 
-// part of sort.Interface
-func (s *sorter) Len() int {
-	return len(s.frames)
+// part of sort.Interface.
+func (s *sorter) Swap(i, j int) {
+	s.frames[i], s.frames[j] = s.frames[j], s.frames[i]
 }

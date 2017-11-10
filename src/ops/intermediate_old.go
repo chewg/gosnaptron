@@ -7,6 +7,27 @@ import (
 	"sort"
 )
 
+/* For Intermediate Old*/
+
+type junction_id string
+type sample_id string
+type sample_count string
+
+
+type mean string
+type max string
+type min string
+type count string
+type sum string
+
+
+type eq string
+type neq string
+type gt string
+type lt string
+type gteq string
+type lteq string
+
 
 type sample struct {
 	junction_id int
@@ -306,4 +327,43 @@ func inner_join(first map[int]int, second map[int]int, ch chan<- interface{}, wg
 
 	ch <- smaller
 	wg.Done()
+}
+
+
+
+/* Part of intermediate_old.go */
+
+type Pair struct {
+	Key int
+	Value int
+}
+
+type PairSlice []Pair
+
+func (p PairSlice) Len() int {
+	return len(p)
+}
+
+func (p PairSlice) Less(i, j int) bool {
+	return p[i].Value < p[j].Value
+}
+
+func (p PairSlice) Swap(i, j int){
+	p[i], p[j] = p[j], p[i]
+}
+
+
+func ConvertMapToSlice(old map[interface{}][]interface{}) PairSlice {
+	pl := make(PairSlice, len(old))
+	i := 0
+
+	for k, v := range old {
+		// Only takes the first element in []interface{} v
+		pl[i] = Pair{k.(int), v[0].(int)}
+		i++
+	}
+
+	// Descending order, by value
+	// sort.Sort(sort.Reverse(pl))
+	return pl
 }

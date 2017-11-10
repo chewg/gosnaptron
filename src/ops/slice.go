@@ -34,7 +34,6 @@ func NewIntSlice(n ...int) *Slice {
 }
 
 
-// todo remove entire file
 func test_slice() {
 	s := NewIntSlice(5, 8, 3, 10, 1)
 	sort.Sort(s)
