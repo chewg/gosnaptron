@@ -11,10 +11,10 @@ type filter_func func(f *Frame, value int) bool
 
 
 func Sample_Count_Gt(f *Frame, value int) bool {
-	return f.count > value
+	return f.First_Count() > value
 }
 
 
 func Sample_Count_Geq(f *Frame, value int) bool {
-	return f.count >= value
+	return f.First_Count() >= value
 }

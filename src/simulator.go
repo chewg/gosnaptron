@@ -2,27 +2,181 @@ package main
 
 import (
 	"snaptron_api/src/query"
-	"snaptron_api/src/web"
 	"snaptron_api/src/data"
-	"snaptron_api/src/examples"
 	"snaptron_api/src/ops"
 	"fmt"
+	"snaptron_api/src/examples"
+	"snaptron_api/src/web"
 )
 
+
 func main() {
-	snaptron_exp_small_ssc()
+	// simulate_jir_calc()
+	// simulate_tsv_calc()
+	simulate_ssc_calc()
 
-	// test_frame_jir()
-	// test_frame_ssc()
-
-	// ssc()
-	// simulate_flexibility(25)
-	// simulate_region_and_filter()
-	// simulate_restful()
+	// old_simulates()
 }
 
 
-func snaptron_exp_small_ssc() {
+func old_simulates() {
+	 test_frame_ssc()
+
+	 ssc()
+	 simulate_flexibility(25)
+	 simulate_region_and_filter()
+	 simulate_restful()
+}
+
+
+func simulate_jir_calc() {
+	region1 := query.Region()
+	region2 := query.Region()
+
+	region1.Chromosome("chr4").Start_Pos(20763023).End_Pos(20763023)
+	region1.Either_End(true)
+	region2.Chromosome("chr4").Start_Pos(20763098).End_Pos(20763098)
+	region2.Either_Start(true)
+
+	filter := query.Filter()
+	filter.Coverage_Sum(">", 1)
+
+	query_string_1 := query.Execute(region1, filter)
+	query_string_2 := query.Execute(region2, filter)
+
+	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
+	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
+
+
+	// Start intermediate
+	frames_from_q1 := ops.Dataframe_To_Frames(dataframe_1)
+	frames_from_q2 := ops.Dataframe_To_Frames(dataframe_2)
+
+	frames_from_q1 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q1)
+	frames_from_q2 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q2)
+
+	frames_from_q1 = ops.Summarize(frames_from_q1, ops.Sum_Count)
+	frames_from_q2 = ops.Summarize(frames_from_q2, ops.Sum_Count)
+
+	frames_with_jir := ops.Calculate_Ratio(ops.JIR_Ratio, frames_from_q1, frames_from_q2)
+	frames_with_jir = ops.Order(frames_with_jir, ops.Decr_Stat)
+
+	url := fmt.Sprintf("http://snaptron.cs.jhu.edu/%v/samples?all=1", "srav2")
+	frames_with_jir = ops.Load_Metadata_Into_Frames(frames_with_jir, url)
+
+	ops.Print_jir(frames_with_jir)
+}
+
+
+func simulate_tsv_calc() {
+	gnb1_group := ssc_gnb1_validated()
+	tap2_group := ssc_tap2_validated()
+
+	intersect_groups := ops.Intersect(gnb1_group, tap2_group)
+	union_groups := ops.Union(gnb1_group, tap2_group)
+
+	intersect_groups = ops.Order(intersect_groups, ops.Incr_Sample_ID)
+	union_groups = ops.Order(union_groups, ops.Incr_Sample_ID)
+
+	url := fmt.Sprintf("http://snaptron.cs.jhu.edu/%v/samples?all=1", "srav2")
+	union_groups = ops.Load_Metadata_Into_Frames(union_groups, url)
+
+	ops.Print_tsv(intersect_groups, union_groups)
+}
+
+
+func simulate_ssc_calc() {
+	gnb1_group := ssc_gnb1_validated()
+	p1k3cd_group := ssc_p1k3cd_nonvalidated()
+	tap2_group := ssc_tap2_validated()
+
+	all_groups := ops.Intersect(gnb1_group, p1k3cd_group, tap2_group)
+	all_groups = ops.Summarize(all_groups, ops.Sum_Count)
+	all_groups = ops.Order(all_groups, ops.Incr_Count, ops.Incr_Sample_ID)
+
+	ops.Print_ssc(all_groups)
+}
+
+
+func ssc_tap2_validated() *[]ops.Frame {
+	// chr6:32831148-32831148	2	strand=-&samples_count>=1	TAP2 validated
+	// chr6:32831182-32831182	1	strand=-&samples_count>=1
+
+	region1 := query.Region()
+	region1.Chromosome("chr6").Start_Pos(32831148).End_Pos(32831148)
+	region1.Either_End(true)
+
+	filter1 := query.Filter()
+	filter1.Strand_Minus(true).Samples_Count(">", 0)
+
+	query_string_1 := query.Execute(region1, filter1)
+	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
+
+
+	region2 := query.Region()
+	region2.Chromosome("chr6").Start_Pos(32831182).End_Pos(32831182)
+	region2.Either_Start(true)
+
+	filter2 := query.Filter()
+	filter2.Strand_Minus(true).Samples_Count(">", 0)
+
+	query_string_2 := query.Execute(region2, filter2)
+	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
+
+
+	// Start intermediate
+	frames_from_q1 := ops.Dataframe_To_Frames(dataframe_1)
+	frames_from_q2 := ops.Dataframe_To_Frames(dataframe_2)
+
+	frames_from_q1 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q1)
+	frames_from_q2 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q2)
+
+	group := ops.Union(frames_from_q1, frames_from_q2)
+	group = ops.Summarize(group, ops.Sum_Count)
+	return group
+}
+
+
+func ssc_p1k3cd_nonvalidated() *[]ops.Frame {
+	// chr1:9664595-9664595	2	strand=+&samples_count>=1	PIK3CD non_validated
+	// chr1:9664759-9664759	1	strand=+&samples_count>=1	PIK3CD non_validated
+
+	region1 := query.Region()
+	region1.Chromosome("chr1").Start_Pos(9664595).End_Pos(9664595)
+	region1.Either_End(true)
+
+	filter1 := query.Filter()
+	filter1.Strand_Plus(true).Samples_Count(">", 0)
+
+	query_string_1 := query.Execute(region1, filter1)
+	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
+
+
+	region2 := query.Region()
+	region2.Chromosome("chr1").Start_Pos(9664759).End_Pos(9664759)
+	region2.Either_Start(true)
+
+	filter2 := query.Filter()
+	filter2.Strand_Plus(true).Samples_Count(">", 0)
+
+	query_string_2 := query.Execute(region2, filter2)
+	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
+
+
+	// Start intermediate
+	frames_from_q1 := ops.Dataframe_To_Frames(dataframe_1)
+	frames_from_q2 := ops.Dataframe_To_Frames(dataframe_2)
+
+	frames_from_q1 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q1)
+	frames_from_q2 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q2)
+
+	group := ops.Union(frames_from_q1, frames_from_q2)
+	group = ops.Summarize(group, ops.Sum_Count)
+	return group
+}
+
+
+func ssc_gnb1_validated() *[]ops.Frame {
 	//chr1:1879786-1879786	2	strand=-&samples_count>=1
 	//chr1:1879903-1879903	1	strand=-&samples_count>=1
 
@@ -49,54 +203,20 @@ func snaptron_exp_small_ssc() {
 
 
 	// Start intermediate
-	frames_from_q1 := ops.Import_Dataframe(dataframe_1)
-	frames_from_q2 := ops.Import_Dataframe(dataframe_2)
+	frames_from_q1 := ops.Dataframe_To_Frames(dataframe_1)
+	frames_from_q2 := ops.Dataframe_To_Frames(dataframe_2)
 
-	group := ops.Group(frames_from_q1, frames_from_q2)
-	group = ops.Summarize(group, ops.Sum_Count_By_Sample_ID)
-	group = ops.Arrange(group, ops.Incr_Sample_ID)
-	fmt.Print(group)
+	frames_from_q1 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q1)
+	frames_from_q2 = ops.Group_By(ops.Group_Frames_By_Sample_ID, frames_from_q2)
+
+	group := ops.Union(frames_from_q1, frames_from_q2)
+	group = ops.Summarize(group, ops.Sum_Count)
+	return group
 }
 
 
-func test_frame_jir() {
-	region1 := query.Region()
-	region1.Chromosome("chr4").Start_Pos(20763023).End_Pos(20763023)
-	region1.Either_End(true)
-
-	filter1 := query.Filter()
-	filter1.Coverage_Sum(">", 1)
-
-	query_string_1 := query.Execute(region1, filter1)
-	dataframe_1 := data.DataFrame().From_Query_String(query_string_1)
 
 
-	region2 := query.Region()
-	region2.Chromosome("chr4").Start_Pos(20763098).End_Pos(20763098)
-	region2.Either_Start(true)
-
-	filter2 := query.Filter()
-	filter2.Coverage_Sum(">", 1)
-
-	query_string_2 := query.Execute(region2, filter2)
-	dataframe_2 := data.DataFrame().From_Query_String(query_string_2)
-
-
-	// Start intermediate
-	frames_from_q1 := ops.Import_Dataframe(dataframe_1)
-	frames_from_q2 := ops.Import_Dataframe(dataframe_2)
-
-	// group := ops.Group(frames_from_q1, frames_from_q2)
-	// group = ops.Summarize(group, ops.Sum_Count_By_Sample_ID)
-
-	frames_from_q1 = ops.Summarize(frames_from_q1, ops.Sum_Count_By_Sample_ID)
-	frames_from_q2 = ops.Summarize(frames_from_q2, ops.Sum_Count_By_Sample_ID)
-
-	frames_with_jir := ops.Junction_Inclusion_Ratio(frames_from_q1, frames_from_q2)
-	frames_with_jir = ops.Arrange(frames_with_jir, ops.Decr_Stat)
-
-	fmt.Print(*frames_with_jir)
-}
 
 
 func test_frame_ssc() {
@@ -110,9 +230,9 @@ func test_frame_ssc() {
 	q_str_1 := query.Execute(region1, filter1)
 	df := data.DataFrame().From_Query_String(q_str_1)
 
-	frames := ops.Import_Dataframe(df)
-	frames = ops.Summarize(frames, ops.Sum_Count_By_Sample_ID)
-	frames = ops.Arrange(frames, ops.Decr_Count, ops.Decr_Sample_ID)
+	frames := ops.Dataframe_To_Frames(df)
+	frames = ops.Summarize(frames, ops.Sum_Count)
+	frames = ops.Order(frames, ops.Decr_Count, ops.Decr_Sample_ID)
 
 	fmt.Print(*frames)
 	fmt.Print("Done")
@@ -206,5 +326,3 @@ func simulate_restful() {
 	answer := web.Get("http://snaptron.cs.jhu.edu/srav2/snaptron?regions=chr6:1-514015&rfilter=samples_count:100")
 	print(answer)
 }
-
-
