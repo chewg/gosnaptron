@@ -9,6 +9,7 @@ library(dplyr)
 
 getSnaptronDataFrame <- function(url, verbose=FALSE)
 {
+  # based off of Leo's code
   to_chr_list <- function(x) {
     r <- strsplit(x, ',')
     i <- which(sapply(r, function(y) { y[[1]] == '0' }))
@@ -25,7 +26,7 @@ getSnaptronDataFrame <- function(url, verbose=FALSE)
   elapsed_time <- end_time - start_time
   if(verbose) message(paste(elapsed_time,"seconds to query Snaptron and download",dim(csv_data)[1],"junction rows"))
 
-  #this block is from Leo as well
+  
   colnames(csv_data) <- c('type', 'snaptron_id', 'chromosome', 'start', 'end',
                      'length', 'strand', 'annotated', 'left_motif', 'right_motif',
                      'left_annotated', 'right_annotated', 'samples',
@@ -47,7 +48,7 @@ getSnaptronDataFrame <- function(url, verbose=FALSE)
   snaptron_data$coverage_median <- as.numeric(csv_data[, 'coverage_median'])
   snaptron_data$source_dataset_id <- as.integer(csv_data[, 'source_dataset_id'])
 
-  #start of cwilks' code; Leo might not want to own this part :)
+  # based off of cwilks' code
   nr<-nrow(csv_data)
   nc<-ncol(csv_data)
   rows<-NULL
@@ -82,6 +83,9 @@ getSnaptronDataFrame <- function(url, verbose=FALSE)
   return(list("ranges"=snaptron_data,"sample_counts"=sample_counts))
 }
 
+
+# charlie's ops
+
 url_1 <- 'http://snaptron.cs.jhu.edu/srav2/snaptron?regions=chr4:20763023-20763023&either=2&rfilter=coverage_sum>:1'
 url_2 <- 'http://snaptron.cs.jhu.edu/srav2/snaptron?regions=chr4:20763098-20763098&either=1&rfilter=coverage_sum>:1'
 
@@ -96,41 +100,70 @@ df_1 <- sc_1[[1]]
 df_2 <- sc_2[[1]]
 
 
-# set operations
-intersect_df <- dplyr::inner_join(df_1, df_2, by="sample")
-union_df <- dplyr::full_join(df_1, df_2, by="sample")
-
-
-
+#
 # shared sample count
-df_1 %>% 
+#
+
+ssc_df <- df_1 %>% 
 group_by(junction, sample) %>%
 summarise(frequency = sum(coverage)) %>%
 filter(frequency > 1) %>%
 arrange(desc(frequency))
 
+#
+# end
+#
 
 
-# tissue specificity
 
-df %>%
-group_by(sample) %>%
-mutate(presence = f(v, d))
+#
+# tissue specificity v2
+#
 
-# if in interesect, return 1. else return 0
-f <- function(v, d) {
-  # v[d == "b"] - v[d == "a"]
-}
+keep_cols <- c("sample", "coverage")
+nojunction_df_1 <- df_1[keep_cols]
+nojunction_df_2 <- df_2[keep_cols]
+
+intersect_df <- dplyr::inner_join(nojunction_df_1, nojunction_df_2, by="sample")
+intersect_df$coverage <- rowSums(intersect_df[, c(2, 3)])
+keep_cols <- c("sample", "coverage")
+intersect_df <- intersect_df[keep_cols]
 
 
-# how do across 2 dataframes?
+union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
+union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
+union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
+union_df$coverage <- rowSums(union_df[, c(2, 3)])
+union_df <- union_df[keep_cols]
+
+ts_df <- dplyr::left_join(union_df, intersect_df, by="sample")
+
+# create new TS present column
+ts_df$present <- rowSums(ts_df[, c(2, 3)])
+ts_df$present <- ifelse(ts_df$present > 0, 1, 0)
+ts_df$present[is.na(ts_df$present)] <- 0
+
+#
+# end
+#
 
 
+
+#
 # junction inclusion ratio
+#
 
-df %>%
-group_by(sample) %>%
-mutate(jir = jir_f(v, d))
+keep_cols <- c("sample", "coverage")
+nojunction_df_1 <- df_1[keep_cols]
+nojunction_df_2 <- df_2[keep_cols]
 
-jir_f <- function(c1, c2) ((c1 - c2) / (c1 + c2 + 1))
+union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
 
+union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
+union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
+
+jir_df <- union_df %>% group_by(sample) %>% mutate(jir = (coverage.x - coverage.y)/(coverage.x + coverage.y + 1))
+
+#
+# end
+#
