@@ -26,7 +26,7 @@ func Print_ssc(group *[]Frame) {
 
 
 func Print_tsv(intersect_group, union_group *[]Frame) {
-	intersect_map := *convert_slice_to_map(intersect_group)
+	intersect_map := *Convert_Slice_To_Map(intersect_group)
 
 	fmt.Printf("%-10v|%-3v|%-25v\n", "Sample ID", "0/1", "Metadata")
 

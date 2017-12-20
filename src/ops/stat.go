@@ -24,7 +24,7 @@ func Sum_Count(frames *[]Frame) *[]Frame {
 		}
 	}
 
-	return convert_map_to_slice(&saved)
+	return Convert_Map_To_Slice(&saved)
 }
 
 

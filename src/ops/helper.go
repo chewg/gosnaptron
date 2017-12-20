@@ -1,9 +1,11 @@
 package ops
 
 import (
-	"snaptron_api/src/data"
 	"math"
-	"snaptron_api/src/web"
+	"snaptron_api/src/query"
+	"strings"
+	"strconv"
+	"snaptron_api/src/server"
 )
 
 
@@ -19,7 +21,7 @@ func append_ints(s1 []int, s2 []int) []int {
 }
 
 
-func convert_map_to_slice(m *map[int]Frame) *[]Frame {
+func Convert_Map_To_Slice(m *map[int]Frame) *[]Frame {
 	var frames []Frame
 
 	// no guarantee with map's order
@@ -31,7 +33,7 @@ func convert_map_to_slice(m *map[int]Frame) *[]Frame {
 }
 
 
-func convert_slice_to_map(f *[]Frame) *map[int]Frame {
+func Convert_Slice_To_Map(f *[]Frame) *map[int]Frame {
 	m := map[int]Frame{}
 
 	switch group_frames_by.(type) {
@@ -102,7 +104,7 @@ func slice_less_than(s1, s2 []int) bool {
 }
 
 
-func Dataframe_To_Frames(data_frame *data.Dataframe) *[]Frame {
+func Dataframe_To_Frames(data_frame *query.Dataframe) *[]Frame {
 	var frames []Frame
 
 	for _, data := range data_frame.Frames() {
@@ -122,12 +124,10 @@ func Dataframe_To_Frames(data_frame *data.Dataframe) *[]Frame {
 }
 
 /* Load Metadata should only be done right before printing out frame. */
-func Load_Metadata_Into_Frames(f *[]Frame, url string) *[]Frame {
-	metadata_offset := 60
-
+func Load_Metadata_Into_Frames(f *[]Frame, datasource string, metadata_offset int) *[]Frame {
 	var frames []Frame
 
-	metadata_map := *web.Import_Metadata(url)
+	metadata_map := *Import_Metadata(datasource)
 
 	for _, frame := range *f {
 		data_slice := metadata_map[frame.First_Sample_ID()]
@@ -141,6 +141,32 @@ func Load_Metadata_Into_Frames(f *[]Frame, url string) *[]Frame {
 	}
 
 	return &frames
+}
+
+
+func Import_Metadata(datasource string) *map[int][]string {
+	metadata_string := server.Get_Metadata_From_Server(datasource)
+	metadata_slice := strings.Split(metadata_string, "\n")
+
+	var row_slice [][]string
+
+	for _, metadata := range metadata_slice {
+		fields := strings.Split(metadata, "\t")
+		row_slice = append(row_slice, fields)
+	}
+
+	row_slice = row_slice[1:]
+
+	metadata_map := map[int][]string{}
+
+	for _, row := range row_slice {
+		i32, _ := strconv.ParseInt(row[0], 10, 32)
+		sample_id := int(i32)
+
+		metadata_map[sample_id] = row
+	}
+
+	return &metadata_map
 }
 
 

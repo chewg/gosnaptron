@@ -81,7 +81,7 @@ func (f *filter) Coverage_Median(op string, num float32) *filter {
 }
 
 func (f *filter) Initialized() bool {
-	if f.length == 0 && f.samples_count == 0 && f.coverage_sum == 0 && f.coverage_avg == 0 && f.coverage_median == 0 {
+	if f.length == 0 && f.samples_count == 0 && f.coverage_sum == 0 && f.coverage_avg == 0 && f.coverage_median == 0 && !f.set_strand && !f.set_no_annotation {
 		return false
 	}
 

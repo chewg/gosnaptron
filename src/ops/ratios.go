@@ -3,53 +3,67 @@ package ops
 type ratio_func func(...int) float32
 
 
-func JIR_Ratio(cs ...int) float32 {
-	if len(cs) != 2 {
+func JIR_Ratio(nums ...int) float32 {
+	if len(nums) != 2 {
 		panic("jir_ratio needs exactly 2 ints passed in.")
 	}
 
-	c1_float := float32(cs[0])
-	c2_float := float32(cs[1])
+	num1 := float32(nums[0])
+	num2 := float32(nums[1])
 
-	return ((c1_float - c2_float) / (c1_float + c2_float + 1))
+	return ((num2 - num1) / (num1 + num2 + 1))
 }
 
 
-// todo fully implement Percent Spliced In
-func psi_ratio(cs ...int) float32 {
-	if len(cs) != 3 {
+func PSI_Ratio(nums ...int) float32 {
+	if len(nums) != 3 {
 		panic("psi_ratio needs exactly 3 ints passed in.")
 	}
 
-	c1_float := float32(cs[0])
-	c2_float := float32(cs[1])
-	c3_float := float32(cs[2])
+	num1 := float32(nums[0])
+	num2 := float32(nums[1])
+	num3 := float32(nums[2])
 
-	mean := (c1_float + c2_float) / 2.0
+	mean := (num1 + num2) / 2.0
 
-	return (mean / (mean + c3_float))
+	return (mean / (mean + num3))
 }
 
 
+// assume that there is only 1 count value within each slice of counts for each *[]Frame
+func Calculate_Ratio(ratio ratio_func, f1 *[]Frame, fs ...*[]Frame) *[]Frame {
+	union := Union(f1, fs...)
+	NUM_OPERANDS := 1 + len(fs)
 
-func Calculate_Ratio(ratio ratio_func, f1, f2 *[]Frame) *[]Frame {
-	f2_map := *convert_slice_to_map(f2)
+	frames_with_ratio := make([]Frame, 0)
 
-	// is intersection op
-	i := 0
-	for _, f1_frame := range *f1 {
-		if f2_frame, exist := f2_map[f1_frame.First_Sample_ID()]; exist {
-			f1_count := f1_frame.Aggregate_Count(aggreg_sum).First_Count()
-			f2_count := f2_frame.Aggregate_Count(aggreg_sum).First_Count()
+	for _, frame := range *union {
+		operands := generate_operands(frame.count, NUM_OPERANDS)
 
-			f1_frame.stat = []float32{ratio(f1_count, f2_count), float32(f1_count), float32(f2_count)}
+		stat := ratio(operands...)
 
-			(*f1)[i] = f1_frame
-			i++
+		frame.stat = append(frame.stat, stat)
+		for _, op := range operands {
+			frame.stat = append(frame.stat, float32(op))
 		}
+
+		frames_with_ratio = append(frames_with_ratio, frame)
 	}
 
-	jir_frames := (*f1)[:i]
+	return &frames_with_ratio
+}
 
-	return &jir_frames
+
+func generate_operands(operands []int, total int) []int {
+	return_operands := make([]int, 0)
+	return_operands = append_ints(return_operands, operands)
+
+	remaining := total - len(operands)
+
+	for (remaining > 0) {
+		return_operands = append(return_operands, 0)
+		remaining--
+	}
+
+	return return_operands
 }

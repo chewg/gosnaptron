@@ -2,22 +2,11 @@ package query
 
 import (
 	"bytes"
-	"snaptron_api/src/web"
 )
 
 
-var server_address string = "http://snaptron.cs.jhu.edu/srav2/snaptron?"
-
-func Execute(params ...interface{}) string {
-	query_string := build_query(params...)
-	return web.Get(query_string)
-}
-
-
-func build_query(params ...interface{}) string {
+func Build_Params(params ...interface{}) string {
 	var b bytes.Buffer
-
-	b.WriteString(server_address)
 
 	appending := false
 	region_exist := false
@@ -90,7 +79,7 @@ func build_query(params ...interface{}) string {
 	}
 
 	if !region_exist {
-		// TODO should do something with an error
+		panic("No Region")
 	}
 
 	return b.String()

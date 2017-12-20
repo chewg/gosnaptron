@@ -1,4 +1,4 @@
-package data
+package query
 
 import (
 	"strings"
@@ -17,7 +17,7 @@ func DataFrame() *Dataframe {
 }
 
 
-func (df *Dataframe) From_Query_String(str string) *Dataframe {
+func (df *Dataframe) From_Server_Data(str string) *Dataframe {
 	lines := strings.Split(str, "\n")
 	// print(lines)
 

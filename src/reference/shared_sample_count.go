@@ -1,4 +1,4 @@
-package examples
+package reference
 
 import (
 	"sync"

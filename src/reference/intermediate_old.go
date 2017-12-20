@@ -1,6 +1,6 @@
 // todo, this file will be superceded by intermediate.go
 
-package ops
+package reference
 
 import (
 	"sync"

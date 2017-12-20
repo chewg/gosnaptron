@@ -104,11 +104,16 @@ df_2 <- sc_2[[1]]
 # shared sample count
 #
 
-ssc_df <- df_1 %>% 
-group_by(junction, sample) %>%
-summarise(frequency = sum(coverage)) %>%
-filter(frequency > 1) %>%
-arrange(desc(frequency))
+shared_sample_count <- function(df)
+{
+  ssc_dataframe <- df %>% 
+  group_by(junction, sample) %>%
+  summarise(frequency = sum(coverage)) %>%
+  filter(frequency > 1) %>%
+  arrange(desc(frequency))
+
+  return ssc_dataframe
+}
 
 #
 # end
@@ -119,29 +124,30 @@ arrange(desc(frequency))
 #
 # tissue specificity v2
 #
+tissue_specificity <- function(df_1, df_2)
+{
+  keep_cols <- c("sample", "coverage")
+  nojunction_df_1 <- df_1[keep_cols]
+  nojunction_df_2 <- df_2[keep_cols]
 
-keep_cols <- c("sample", "coverage")
-nojunction_df_1 <- df_1[keep_cols]
-nojunction_df_2 <- df_2[keep_cols]
+  intersect_df <- dplyr::inner_join(nojunction_df_1, nojunction_df_2, by="sample")
+  intersect_df$coverage <- rowSums(intersect_df[, c(2, 3)])
+  keep_cols <- c("sample", "coverage")
+  intersect_df <- intersect_df[keep_cols]
 
-intersect_df <- dplyr::inner_join(nojunction_df_1, nojunction_df_2, by="sample")
-intersect_df$coverage <- rowSums(intersect_df[, c(2, 3)])
-keep_cols <- c("sample", "coverage")
-intersect_df <- intersect_df[keep_cols]
+  union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
+  union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
+  union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
+  union_df$coverage <- rowSums(union_df[, c(2, 3)])
+  union_df <- union_df[keep_cols]
 
+  ts_df <- dplyr::left_join(union_df, intersect_df, by="sample")
 
-union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
-union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
-union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
-union_df$coverage <- rowSums(union_df[, c(2, 3)])
-union_df <- union_df[keep_cols]
-
-ts_df <- dplyr::left_join(union_df, intersect_df, by="sample")
-
-# create new TS present column
-ts_df$present <- rowSums(ts_df[, c(2, 3)])
-ts_df$present <- ifelse(ts_df$present > 0, 1, 0)
-ts_df$present[is.na(ts_df$present)] <- 0
+  # create new TS present column
+  ts_df$present <- rowSums(ts_df[, c(2, 3)])
+  ts_df$present <- ifelse(ts_df$present > 0, 1, 0)
+  ts_df$present[is.na(ts_df$present)] <- 0
+}
 
 #
 # end
@@ -153,16 +159,22 @@ ts_df$present[is.na(ts_df$present)] <- 0
 # junction inclusion ratio
 #
 
-keep_cols <- c("sample", "coverage")
-nojunction_df_1 <- df_1[keep_cols]
-nojunction_df_2 <- df_2[keep_cols]
+junction_inclusion_ratio <- function(df_1, df_2)
+{
+  keep_cols <- c("sample", "coverage")
+  nojunction_df_1 <- df_1[keep_cols]
+  nojunction_df_2 <- df_2[keep_cols]
 
-union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
+  union_df <- dplyr::full_join(nojunction_df_1, nojunction_df_2, by="sample")
 
-union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
-union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
+  union_df$coverage.x[is.na(union_df$coverage.x)] <- 0
+  union_df$coverage.y[is.na(union_df$coverage.y)] <- 0
 
-jir_df <- union_df %>% group_by(sample) %>% mutate(jir = (coverage.x - coverage.y)/(coverage.x + coverage.y + 1))
+  jir_df <- union_df %>% 
+  group_by(sample) %>% 
+  mutate(jir = (coverage.x - coverage.y)/(coverage.x + coverage.y + 1)) %>% 
+  arrange(desc(jir))
+}
 
 #
 # end

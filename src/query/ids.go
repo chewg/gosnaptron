@@ -17,8 +17,11 @@ func Junction_IDs() junction_ids {
 	return j
 }
 
-func (j *junction_ids) Add(id int) *junction_ids {
-	j.ids = append(j.ids, id)
+func (j *junction_ids) Add(ids ...int) *junction_ids {
+	for id := range ids {
+		j.ids = append(j.ids, id)
+	}
+
 	return j
 }
 
@@ -33,7 +36,7 @@ func (j *junction_ids) Initialized() bool {
 func (j *junction_ids) Export() (string, error) {
 	if j.Initialized() {
 		ids_string := strings.Trim(strings.Join(strings.Fields(fmt.Sprint(j.ids)), ","), "[]")
-		return fmt.Sprintf("ids=%s", ids_string), nil
+		return fmt.Sprintf("sids=%s", ids_string), nil
 	}
 
 	return "", errors.New("No valid junction ids")
@@ -51,8 +54,10 @@ func Sample_IDs() sample_ids {
 	return s
 }
 
-func (s *sample_ids) Add(id int) *sample_ids {
-	s.ids = append(s.ids, id)
+func (s *sample_ids) Add(ids ...int) *sample_ids {
+	for id := range ids {
+		s.ids = append(s.ids, id)
+	}
 	return s
 }
 

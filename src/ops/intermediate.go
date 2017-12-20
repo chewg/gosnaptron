@@ -50,15 +50,15 @@ func Filter(frames *[]Frame, filter_tuples ...Filter_tuple) *[]Frame {
 func Group_By(group_by_func func(), frames *[]Frame) *[]Frame {
 	group_by_func()
 
-	m := convert_slice_to_map(frames)
-	s := convert_map_to_slice(m)
+	m := Convert_Slice_To_Map(frames)
+	s := Convert_Map_To_Slice(m)
 
 	return s
 }
 
 
 func Intersect(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
-	m := *convert_slice_to_map(frames_1)
+	m := *Convert_Slice_To_Map(frames_1)
 
 	// Intersection procedure
 	for _, frames := range more_frames {
@@ -92,7 +92,7 @@ func Intersect(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
 		m = intersected_m
 	}
 
-	return convert_map_to_slice(&m)
+	return Convert_Map_To_Slice(&m)
 }
 
 
@@ -130,7 +130,7 @@ Parameters: pointer to 1 slice of frames, pointer(s) to 1 or more slice(s) of fr
 Output: address of 1 slice of frames, which is the union of all frames grouped by the frame id
 *****/
 func Union(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
-	m := *convert_slice_to_map(frames_1)
+	m := *Convert_Slice_To_Map(frames_1)
 
 	// iterate through more_frames and union each one with frames_1
 	for _, frames := range more_frames {
@@ -151,5 +151,5 @@ func Union(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
 		}
 	}
 
-	return convert_map_to_slice(&m)
+	return Convert_Map_To_Slice(&m)
 }
