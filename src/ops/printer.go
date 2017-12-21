@@ -3,6 +3,15 @@ package ops
 import "fmt"
 
 
+/*****
+Print_jir
+
+Takes as parameters 1 pointer to a slice of frames. The function body prints to stdout the results of the JIR High
+Level example.
+
+Parameters: 1 pointer to a slice of frames
+Output: none is returned
+*****/
 func Print_jir(group *[]Frame) {
 	fmt.Printf("%-10v|%-10v|%-10v|%-10v|%-25v\n", "JIR", "Count 1", "Count 2", "Sample ID", "Metadata")
 
@@ -14,6 +23,15 @@ func Print_jir(group *[]Frame) {
 }
 
 
+/*****
+Print_ssc
+
+Takes as parameters 1 pointer to a slice of frames. The function body prints to stdout the results of the SSC High
+Level example.
+
+Parameters: 1 pointer to a slice of frames
+Output: none is returned
+*****/
 func Print_ssc(group *[]Frame) {
 	fmt.Printf("%-10v|%-25v\n", "Sample ID", "Count")
 
@@ -25,6 +43,16 @@ func Print_ssc(group *[]Frame) {
 }
 
 
+/*****
+Print_tsv
+
+Takes as parameters 1 pointer to a slice of frames that is the intersect group and another pointer that is the union
+group. The check of whether there is presence is performed in the function body. The function then prints to stdout
+the results of the TSV High Level example.
+
+Parameters: 1 pointer to a slice of frames, 1 pointer to a lice of frames
+Output: none is returned
+*****/
 func Print_tsv(intersect_group, union_group *[]Frame) {
 	intersect_map := *Convert_Slice_To_Map(intersect_group)
 

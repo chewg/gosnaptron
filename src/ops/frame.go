@@ -14,6 +14,14 @@ type Frame struct {
 }
 
 
+/*****
+New_Frame
+
+Instantiates a new Frame object and instantiates all the slice fields
+
+Parameters: none
+Output: address to a Frame
+*****/
 func New_Frame() *Frame {
 	f := Frame{}
 	f.junction_id = make([]int, 0)
@@ -44,6 +52,13 @@ func (f *Frame) First_Stat() float32 {
 }
 
 
+/*****
+Add_Count
+
+Adds a new Count int to the Count field. Sort is also performed of the Count field to guarantee a deterministic field
+
+** Is a Frame type struct method
+*****/
 func (f *Frame) Add_Count(new_count int) *Frame {
 	f.count = append(f.count, new_count)
 	sort.Ints(f.count)
@@ -51,6 +66,14 @@ func (f *Frame) Add_Count(new_count int) *Frame {
 }
 
 
+/*****
+Add_Junction_ID
+
+Adds a new Junction ID int to the Junction ID field. Sort is also performed of the Junction ID field to
+guarantee a deterministic field
+
+** Is a Frame type struct method
+*****/
 func (f *Frame) Add_Junction_ID(new_id int) *Frame {
 	f.junction_id = append(f.junction_id, new_id)
 	sort.Ints(f.junction_id)
@@ -58,6 +81,14 @@ func (f *Frame) Add_Junction_ID(new_id int) *Frame {
 }
 
 
+/*****
+Add_Sample_ID
+
+Adds a new Sample ID int to the Sample ID field. Sort is also performed of the Sample ID field to
+guarantee a deterministic field
+
+** Is a Frame type struct method
+*****/
 func (f *Frame) Add_Sample_ID(new_id int) *Frame {
 	f.sample_id = append(f.sample_id, new_id)
 	sort.Ints(f.sample_id)
@@ -65,6 +96,13 @@ func (f *Frame) Add_Sample_ID(new_id int) *Frame {
 }
 
 
+/*****
+Add_Stat
+
+Adds a new stat float32 to the stat field. No sorting is done with the stat field
+
+** Is a Frame type struct method
+*****/
 func (f *Frame) Add_Stat(new_stat float32) *Frame {
 	f.stat = append(f.stat, new_stat)
 	return f
@@ -77,6 +115,13 @@ func (f *Frame) Set_Metadata(s string) *Frame {
 }
 
 
+/*****
+Aggregate_Count
+
+Runs an aggregation function on the Count field. It can be summation, average, etc.
+
+** Is a Frame type struct method
+*****/
 func (f *Frame) Aggregate_Count(fn aggreg_func) *Frame {
 	new_count := 0
 
@@ -90,7 +135,15 @@ func (f *Frame) Aggregate_Count(fn aggreg_func) *Frame {
 }
 
 
-// then have a function that takes in these function and performs them
+/*****
+update_count
+
+Updates the Count field of a Frame by appending the Count field from another Frame.
+Sort is also performed to guarantee a deterministic value.
+
+Parameters: 2 pointers to Frames
+Output: address to a Frame
+*****/
 func update_count(f_keep, f_additional *Frame) *Frame {
 	f_keep.count = append_ints(f_keep.count, f_additional.count)
 	sort.Ints(f_keep.count)
@@ -98,13 +151,30 @@ func update_count(f_keep, f_additional *Frame) *Frame {
 }
 
 
+/*****
+update_junction_id
+
+Updates the Junction ID field of a Frame by appending the Junction ID field from another Frame.
+Sort is also performed to guarantee a deterministic value.
+
+Parameters: 2 pointers to Frames
+Output: address to a Frame
+*****/
 func update_junction_id(f_keep, f_additional *Frame) *Frame {
 	f_keep.junction_id = append_ints(f_keep.junction_id, f_additional.junction_id)
 	sort.Ints(f_keep.junction_id)
 	return f_keep
 }
 
+/*****
+update_sample_id
 
+Updates the Sample ID field of a Frame by appending the Sample ID field from another Frame.
+Sort is also performed to guarantee a deterministic value.
+
+Parameters: 2 pointers to Frames
+Output: address to a Frame
+*****/
 func update_sample_id(f_keep, f_additional *Frame) *Frame {
 	f_keep.sample_id = append_ints(f_keep.sample_id, f_additional.sample_id)
 	sort.Ints(f_keep.sample_id)
@@ -112,6 +182,14 @@ func update_sample_id(f_keep, f_additional *Frame) *Frame {
 }
 
 
+/*****
+update_by_junction_id
+
+When an update by Junction ID is performed, one wants to update both the Count and the Sample ID fields.
+
+Parameters: 2 Frames
+Output: 1 Frame
+*****/
 func update_by_junction_id(f_keep, f_additional Frame) Frame {
 	f_keep = *update_count(&f_keep, &f_additional)
 	f_keep = *update_sample_id(&f_keep, &f_additional)
@@ -119,6 +197,14 @@ func update_by_junction_id(f_keep, f_additional Frame) Frame {
 }
 
 
+/*****
+update_by_sample_id
+
+When an update by Sample ID is performed, one wants to update both the Count and the Junction ID fields.
+
+Parameters: 2 Frames
+Output: 1 Frame
+*****/
 func update_by_sample_id(f_keep, f_additional Frame) Frame {
 	f_keep = *update_count(&f_keep, &f_additional)
 	f_keep = *update_junction_id(&f_keep, &f_additional)
@@ -130,6 +216,11 @@ type By_Junction_ID struct{}
 type By_Sample_ID struct {}
 
 
+/*****
+sorter
+
+Used for the Order function in intermediate.go
+*****/
 type sorter struct {
 	frames 		[]Frame
 	order    	[]order_func

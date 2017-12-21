@@ -5,6 +5,15 @@ import (
 )
 
 
+/*****
+Build_Params
+
+Takes in a variable number of type structs in the query package. It creates the params query string that is later
+sent to the snaptron server.
+
+Parameters: variable number of type structs
+Output: query string containing the parameters
+*****/
 func Build_Params(params ...interface{}) string {
 	var b bytes.Buffer
 
@@ -84,5 +93,3 @@ func Build_Params(params ...interface{}) string {
 
 	return b.String()
 }
-
-

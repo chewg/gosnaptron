@@ -7,6 +7,14 @@ import (
 )
 
 
+/*****
+main
+
+Entry point into gosnaptron
+
+Parameters: none
+Output: none
+*****/
 func main() {
 	//jir_tss_hg19()
 

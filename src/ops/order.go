@@ -1,6 +1,15 @@
 package ops
 
 
+/*****
+order_func
+
+Takes as parameters 2 pointers to Frames. Within the function body, a comparison is made between the respective field
+of each Frame. A bool is returned of whether the comparison was true or false
+
+Parameters: 2 pointers to slices of frames
+Output: bool of whether frame field comparison was true or false
+*****/
 type order_func func(f1, f2 *Frame) bool
 
 

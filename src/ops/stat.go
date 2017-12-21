@@ -1,6 +1,15 @@
 package ops
 
 
+/*****
+stat_func
+
+Takes as parameters 1 pointer to a slice of frames. The function body contains the summary statistic operation that is
+performed on each frame's field.
+
+Parameters: 1 pointer to a slice of frames
+Output: 1 address to a slice of frames, with the summary statistic been performed
+*****/
 type stat_func func(f *[]Frame) *[]Frame
 
 
@@ -40,4 +49,3 @@ func sum_count_by_sample_id(f_keep, f_additional Frame) Frame {
 	f_keep.Aggregate_Count(aggreg_sum)
 	return f_keep
 }
-

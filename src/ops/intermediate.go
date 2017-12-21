@@ -9,6 +9,14 @@ func init() {
 }
 
 
+/*****
+Bind
+
+Takes a variable number of frames and appends them together.
+
+Parameters: pointer to a variable number of slices of frames
+Output: address of 1 slice of frames where the frames are appended one after the other.
+*****/
 func Bind(frames_group ...*[]Frame) *[]Frame {
 	var group []Frame
 
@@ -21,6 +29,14 @@ func Bind(frames_group ...*[]Frame) *[]Frame {
 }
 
 
+/*****
+Filter
+
+Takes one slice of frames and filters the frames within the slice according to the filter_tuples passed in
+
+Parameters: pointer to 1 slice of frames, variable number of Filter_tuple
+Output: address of 1 slice of frames where the frames within the slice are filtered
+*****/
 func Filter(frames *[]Frame, filter_tuples ...Filter_tuple) *[]Frame {
 	i := 0
 
@@ -46,7 +62,16 @@ func Filter(frames *[]Frame, filter_tuples ...Filter_tuple) *[]Frame {
 }
 
 
-// Ensures distinctness
+/*****
+Group_By
+
+Takes a group_by_func and slice of frames to apply grouping on the slice of frames, removing duplicates.
+Note that because the variable group_frames_by is set here and is used throughout the ops package that this
+method should be executed as soon as possible when one start using the ops package.
+
+Parameters: group_by_func (Group_Frames_By_Junction_ID or Group_Frames_By_Sample_ID), pointer to 1 slice of frames
+Output: address of 1 slice of frames, where each frame is guaranteed a distinct ID
+*****/
 func Group_By(group_by_func func(), frames *[]Frame) *[]Frame {
 	group_by_func()
 
@@ -57,6 +82,15 @@ func Group_By(group_by_func func(), frames *[]Frame) *[]Frame {
 }
 
 
+/*****
+Intersect
+
+Takes slices of frames, and based on the frame id the frames are grouped by and is globally set,
+the different slices are intersected together.
+
+Parameters: pointer to 1 slice of frames, pointer(s) to 1 or more slice(s) of frames
+Output: address of 1 slice of frames, which is the intersection of all frames grouped by the frame id
+*****/
 func Intersect(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
 	m := *Convert_Slice_To_Map(frames_1)
 
@@ -96,6 +130,14 @@ func Intersect(frames_1 *[]Frame, more_frames ...*[]Frame) *[]Frame {
 }
 
 
+/*****
+Order
+
+Takes one slice of frames and orders the frames within the slice according to the order_funcs passed in
+
+Parameters: pointer to 1 slice of frames, variable number of order_func
+Output: address of 1 slice of frames where the frames within the slice are ordered
+*****/
 func Order(frames *[]Frame, order ...order_func) *[]Frame {
 	order_by(order...).Sort(*frames)
 	return frames

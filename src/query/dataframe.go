@@ -17,6 +17,14 @@ func DataFrame() *Dataframe {
 }
 
 
+/*****
+From_Server_Data
+
+Given the returned string from snaptron server, which contains all the data, convert if to a dataframe
+
+Parameters: string from snaptron server
+Output: address of a dataframe
+*****/
 func (df *Dataframe) From_Server_Data(str string) *Dataframe {
 	lines := strings.Split(str, "\n")
 	// print(lines)
@@ -35,6 +43,15 @@ func (df *Dataframe) Frames() []Data {
 }
 
 
+/*****
+load_dataframes
+
+Given a row of data from the snaptron server string, populate a Data type struct with it. That Data type struct is then
+appended into a Dataframe. The Dataframe is then returned.
+
+Parameters: variable number of rows from the snaptron server string
+Output: address of a dataframe
+*****/
 func (df *Dataframe) load_dataframes(frames ...[]string) *Dataframe {
 	for _, frame := range frames {
 		d := Data{}
